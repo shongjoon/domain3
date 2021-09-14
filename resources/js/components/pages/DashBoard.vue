@@ -1,6 +1,5 @@
 <template>
     <div>
-        
         <div
             class="
                 _1adminOverveiw_table_recent
@@ -16,53 +15,116 @@
                     ><i class="el-icon-plus"></i> Add</el-button
                 >
             </p>
-
-            <div class="_overflow _table_div">
-                <table class="_table notice">
-                    <tr class="text-white">
-                        <td>memo</td>
-                        <td class="w-1/6">날짜</td>
-                        <td class="w-10">수정</td>
-                        <td class="w-10">삭제</td>
-                    </tr>
-                    <tr v-for="(memo, i) in memos" :key="i">
-                        <td>{{ memo.memo }}</td>
-                        <td>{{ memo.created_at }}</td>
-                        <td>
+            <el-table
+                style="width: 100%; height: 246px"
+                class="clickable-rows"
+                :cell-style="{ padding: '0', height: '40px' }"
+                :data="memos"
+            >
+                <el-table-column label="Id" prop="id" width="50">
+                </el-table-column>
+                <el-table-column
+                    label="Memo"
+                    prop="memo"
+                    class=""
+                    height="10px"
+                >
+                </el-table-column>
+                <el-table-column
+                    label="Created At"
+                    prop="created_at"
+                    width="150"
+                >
+                </el-table-column>
+                <el-table-column
+                    label="Updated At"
+                    prop="updated_at"
+                    width="150"
+                >
+                </el-table-column>
+                <el-table-column width="150">
+                    <template slot-scope="memoContent">
+                        <div>
+                            {{ memoContent.row.content }}
+                        </div>
+                        <div class="text-right">
                             <el-button
-                                type="success"
-                                size="small"
-                                @click="showEditModal(memo)"
-                                >수정</el-button
-                            >
-                        </td>
-                        <td>
-                            <el-button
-                                size="small"
                                 type="danger"
-                                @click="showDeleteModal(memo, i)"
-                                >삭제</el-button
-                            >
-                        </td>
-                    </tr>
-                    <!-- ITEMS -->
-                </table>
-            </div>
+                                size="small"
+                                style="cursor: pointer"
+                                @click="
+                                    showDeleteModal(
+                                        memoContent.row.content,
+                                        memoContent.row.id
+                                    )
+                                "
+                                >삭제
+                            </el-button>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <pagination
+                class="mt-1"
+                :data="pagenationData"
+                @pagination-change-page="memoGet"
+                :show-disabled="true"
+            >
+                <span slot="prev-nav">&lt; 이전</span>
+                <span slot="next-nav">다음 &gt;</span>
+            </pagination>
         </div>
         <div>
             <div class="table_header">
                 만료 임박 도메인 {{ expire_date.length }}
             </div>
-            <Table border :columns="columns5" :data="nowData"></Table>
-            <Page
-                :total="expire_date.length"
-                :pageSize="pageSize"
-                @on-change="changePage"
-                @on-page-size-change="_nowPageSize"
-                simple
-            />
         </div>
-
+        <el-table
+            style="width: 100%; height: 529px"
+            class="clickable-rows"
+            :cell-style="{ padding: '0', height: '40px' }"
+            :data="
+                expireData.filter(
+                    (data) =>
+                        !search || test(data, search) ||
+                        data.site.description.toLowerCase().includes(search.toLowerCase())
+                )
+            "
+        >
+            <el-table-column label="Id" prop="id" width=""> 
+                <template slot="header" slot-scope="scope">
+                    <el-input
+                        v-model="search"
+                        size="mini"
+                        placeholder="사이트 이름"
+                    />
+                </template>
+            </el-table-column>
+            <el-table-column label="Site" prop="site.description" width="">
+            </el-table-column>
+            <el-table-column label="Get Id" prop="get_id" width="">
+            </el-table-column>
+            <el-table-column label="Suatus" prop="status" width="">
+            </el-table-column>
+            <el-table-column label="Created At" prop="created_at" width="">
+            </el-table-column>
+            <el-table-column
+                label="Expire Date"
+                prop="expire_date"
+                width=""
+                sortable
+            >
+            </el-table-column>
+        </el-table>
+        <pagination
+            class="mt-1"
+            :data="expirePageData"
+            @pagination-change-page="expireDomainGet"
+            :show-disabled="true"
+        >
+            <span slot="prev-nav">&lt; 이전</span>
+            <span slot="next-nav">다음 &gt;</span>
+        </pagination>
         <Modal
             v-model="addModal"
             title="add tag"
@@ -77,26 +139,6 @@
                 <el-button type="primary" @click="addMemo">Add memo</el-button>
             </div>
         </Modal>
-        <Modal
-            v-model="editModal"
-            title="Edit memo"
-            :mask-closable="false"
-            :closable="false"
-        >
-            <Input
-                v-model="editData.memo"
-                placeholder="Edit memo"
-                class="w-full"
-            />
-            <div slot="footer">
-                <el-button type="default" @click="editModal = false"
-                    >Close</el-button
-                >
-                <el-button type="primary" @click="editMemo"
-                    >edit memo</el-button
-                >
-            </div>
-        </Modal>
         <Modal v-model="deleteModal" width="360">
             <p slot="header" style="color: #f60; text-align: center">
                 <Icon type="ios-information-circle"></Icon>
@@ -109,7 +151,7 @@
                 <el-button type="default" @click="deleteModal = false"
                     >Close</el-button
                 >
-                <el-button type="primary" @click="deleteTag">Delete</el-button>
+                <el-button type="primary" @click="deleteMemo">Delete</el-button>
             </div>
         </Modal>
     </div>
@@ -124,103 +166,74 @@ table._table tr td {
 }
 </style>
 <script>
+import pagination from "laravel-vue-pagination";
 export default {
+    components: {
+        pagination,
+    },
     data() {
         return {
-            columns5: [
-                {
-                    title: "site",
-                    key: "site",
-                    sortable: true,
-                    width: 100
-                    
-                },
-                {
-                    title: "name",
-                    key: "name",
-                    sortable: true,
-                },
-                {
-                    title: "get_id",
-                    key: "get_id",
-                    sortable: true,
-                },
-                {
-                    title: "status",
-                    key: "status",
-                    sortable: true,
-                    width: 100
-                },
-                {
-                    title: "security_level",
-                    key: "security_level",
-                    sortable: true,
-                    width: 100
-                },
-                {
-                    title: "ssl",
-                    key: "ssl_setting",
-                    sortable: true,
-                    width: 100
-                },
-                {
-                    title: "ipv6",
-                    key: "ipv6",
-                    sortable: true,
-                    width: 70
-                },
-                {
-                    title: "created_at",
-                    key: "created_at",
-                    sortable: true,
-                },
-                {
-                    title: "expire_date",
-                    key: "expire_date",
-                    sortable: true,
-                    sortType: "desc",
-                },
-            ],
-
             data: {
                 memo: "",
             },
             editData: {
                 memo: "",
             },
+            pagenationData: {},
+            expireData: [],
+            expirePageData: {},
             addModal: false,
             editModal: false,
             deleteModal: false,
+            deleteData: "",
             memos: [],
             nowData: [],
             pageSize: 15,
             expire_date: [],
-            // pageCurrent: 1,
+            pageCurrent: 1,
+            search: "",
         };
     },
 
+    beforeMount: function () {
+        this.memoGet();
+        this.expireDomainGet();
+    },
     methods: {
-        changePage(index) {
-            let _start = (index - 1) * this.pageSize;
-            let _end = index * this.pageSize;
-            // this.pageCurrent = index;
-            this.nowData = this.expire_date.slice(_start, _end);
+        test (a, b) {
+            console.log(this.expireData);
         },
-        _nowPageSize(index) {
-            console.log("_nowPageSize");
-            //Get the current number of items that need to be displayed in real time
-            this.pageSize = index;
+        async memoGet(page = 1) {
+            const res = await this.callApi("get", "api/get_memos?page=" + page);
+            if (res.status === 200) {
+                this.memos = res.data.data;
+                this.pagenationData = res.data;
+            } else {
+                this.swr();
+            }
         },
-
+        async expireDomainGet(page = 1) {
+            const res = await this.callApi(
+                "get",
+                "api/get_domain?page=" + page
+            );
+            console.log("res", res);
+            if (res.status === 200) {
+                this.expireData = res.data.data;
+                this.expirePageData = res.data;
+                // this.nowData = this.expire_date.slice(0, this.pageSize);
+            } else {
+                this.swr();
+            }
+        },
         async addMemo() {
             if (this.data.memo.trim() == "")
                 return this.e("tag name is required");
             const res = await this.callApi(
                 "post",
-                "app/create_memo",
+                "api/create_memo",
                 this.data
             );
-
             if (res.status === 201) {
                 this.memos.unshift(res.data);
                 this.s("memo added");
@@ -236,67 +249,24 @@ export default {
                 }
             }
         },
-        async editMemo() {
-            if (this.editData.memo.trim() == "")
-                return this.e("memo is required");
-            const res = await this.callApi(
-                "post",
-                "app/edit_memo",
-                this.editData
-            );
+        async deleteMemo() {
+            const res = await this.callApi("post", "api/delete_memo", {
+                id: this.deleteDataMemo,
+            });
             if (res.status === 200) {
-                this.s("memo has been edited");
-                this.editModal = false;
-            } else {
-                if (res.status === 422) {
-                    if (res.data.errors.memo) {
-                        this.e(res.data.errors.memo[0]);
-                    }
-                } else {
-                    this.swr();
-                }
-            }
-        },
-        async deleteTag() {
-            const res = await this.callApi(
-                "post",
-                "app/delete_memo",
-                this.deleteData
-            );
-            if (res.status === 200) {
-                this.memos.splice(this.deleteId, 1);
+                // 이거 왜 실시간으로 삭제가 안되나???
+                this.memos.splice(this.deleteDataMemo, 1);
                 this.s("deleted success");
                 this.deleteModal = false;
             } else {
                 this.swr();
             }
         },
-        showEditModal(memo) {
-            this.editData = memo;
-            this.editModal = true;
-        },
         showDeleteModal(memo, i) {
             this.deleteModal = true;
-            this.deleteId = i;
-            this.deleteData = memo;
+            this.deleteDataMemo = i;
         },
     },
-
-    async created() {
-        const res = await this.callApi("get", "app/get_memos");
-        if (res.status === 200) {
-            this.memos = res.data;
-        } else {
-            this.swr();
-        }
-        const expire_date = await this.callApi("get", "app/get_domain");
-        console.log('expire_date',expire_date);
-        if (expire_date.status === 200) {
-            this.expire_date = expire_date.data.data;
-            this.nowData = this.expire_date.slice(0, this.pageSize);
-        } else {
-            this.swr();
-        }
-    },
+    async created() {},
 };
 </script>

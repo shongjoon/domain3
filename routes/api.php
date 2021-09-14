@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\MemoController;
+use App\Http\Controllers\CloudDomainController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +17,14 @@ use Illuminate\Http\Request;
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+// Route::middleware('auth:api')->get('api/get_memos', function {
+
+// });
+Route::group(['middleware', 'auth:api'], function() {
+    Route::get('get_memos', [MemoController::class, 'getMemo']);
+    Route::get('get_domain', [CloudDomainController::class, 'getDomain']);
+    Route::post('create_memo', [MemoController::class, 'createMemo']);
+    Route::post('delete_memo', [MemoController::class, 'deleteMemo']);
 });

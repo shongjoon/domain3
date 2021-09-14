@@ -8,16 +8,17 @@ require('./bootstrap');
 window.Vue = require('vue');
 import VueRouter from 'vue-router';
 import routes from './routes';
-// import ViewUI from 'view-design';
-// import 'view-design/dist/styles/iview.css';
+import ViewUI from 'view-design';
+import 'view-design/dist/styles/iview.css';
 import Element from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
 import common from './common'
 // import vuetify from './plugins/vuetify';
 
+
 Vue.use(Element)
 Vue.mixin(common)
-// Vue.use(vuetify)
+Vue.use(ViewUI);
 Vue.use(VueRouter);
 /**
  * The following block of code may be used to automatically register your

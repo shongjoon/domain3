@@ -9,11 +9,11 @@ export default {
     mode : 'history',
     routes : [
         {
-            path: '/home',
+            path: '/',
             component: MainApp
         },
         {
-            path: '/DashBoard',
+            path: '/home',
             component: DashBoard
         },
         // {

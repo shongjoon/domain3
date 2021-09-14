@@ -11,15 +11,16 @@
 
     <!-- Styles -->
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+    
 </head>
 <body class="bg-gray-100 h-screen antialiased leading-none">
-    <div id="app">
-        <nav class="bg-blue-900 shadow mb-8 py-6">
-            <div class="container mx-auto px-6 md:px-0">
-                <div class="flex items-center justify-center">
+    <div id="app" class="h-full">
+        <nav class="bg-blue-900 shadow py-6 ">
+            <div class="container mx-auto px-6 md:px-0 ">
+                <div class="flex items-center justify-center h-full">
                     <div class="mr-6">
-                        <a href="{{ url('/') }}" class="text-lg font-semibold text-gray-100 no-underline">
-                            {{ config('app.name', 'Laravel') }}
+                        <a href="{{ url('/MainApp') }}" class="text-lg font-semibold text-gray-100 no-underline">
+                            Domain
                         </a>
                     </div>
                     <div class="flex-1 text-right">
@@ -43,7 +44,6 @@
                 </div>
             </div>
         </nav>
-
         @yield('content')
     </div>
 

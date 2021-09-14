@@ -20,3 +20,4 @@ Route::any('{shug}', function() {
 });
 // Route::get('/home', 'HomeController@index')->name('home');
 
+Route::get('get_memos', 'MemoController@getMemo');
