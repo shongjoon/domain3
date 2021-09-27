@@ -80,23 +80,26 @@
             </div>
         </div>
         <el-table
-            style="width: 100%; height: 529px"
+            style="width: 100%; height: 615px"
             class="clickable-rows"
             :cell-style="{ padding: '0', height: '40px' }"
             :data="
                 expireData.filter(
                     (data) =>
-                        !search || test(data, search) ||
-                        data.site.description.toLowerCase().includes(search.toLowerCase())
+                        !search ||
+                        data.site.description
+                            .toLowerCase()
+                            .includes(search.toLowerCase())
                 )
             "
         >
-            <el-table-column label="Id" prop="id" width=""> 
+            <el-table-column label="Id" prop="id" width="">
                 <template slot="header" slot-scope="scope">
                     <el-input
+                        @keyup.native.enter="searchData"
                         v-model="search"
                         size="mini"
-                        placeholder="사이트 이름"
+                        placeholder="사이트 이름 + 엔터"
                     />
                 </template>
             </el-table-column>
@@ -167,6 +170,7 @@ table._table tr td {
 </style>
 <script>
 import pagination from "laravel-vue-pagination";
+import { mapState, mapActions } from "vuex";
 export default {
     components: {
         pagination,
@@ -186,7 +190,7 @@ export default {
             editModal: false,
             deleteModal: false,
             deleteData: "",
-            memos: [],
+            // memos: [],
             nowData: [],
             pageSize: 15,
             expire_date: [],
@@ -196,28 +200,56 @@ export default {
     },
 
     beforeMount: function () {
-        this.memoGet();
+        console.log("beforeMount");
         this.expireDomainGet();
+        this.memoGet();
+    },
+    created() {
+        console.log("created"); // 여기선 템플릿과 가상돔은 마운트 및 렌더링되지 않은 상태이다.
+    },
+    computed: {
+        ...mapState({
+            memos: (state) => state.memos,
+        }),
+    },
+    mounted() {
+        console.log("mounted");
     },
     methods: {
-        test (a, b) {
-            console.log(this.expireData);
-        },
-        async memoGet(page = 1) {
-            const res = await this.callApi("get", "api/get_memos?page=" + page);
+        async searchData(search) {
+            // console.log(search);
+            // console.log("a", search.target.value);
+
+            const res = await this.callApi(
+                "get",
+                "api/get_domain?search=" + search.target.value
+            );
+            // console.log("res", res);
             if (res.status === 200) {
-                this.memos = res.data.data;
-                this.pagenationData = res.data;
+                this.expireData = res.data.data;
+                this.expirePageData = res.data;
+                // this.nowData = this.expire_date.slice(0, this.pageSize);
             } else {
                 this.swr();
             }
         },
+        ...mapActions(["memoGet"]),
+        // async memoGet(page = 1) {
+        //     const res = await this.callApi("get", "api/get_memos?page=" + page);
+        //     if (res.status === 200) {
+        //         this.memos = res.data.data;
+        //         this.pagenationData = res.data;
+        //     } else {
+        //         this.swr();
+        //     }
+        // },
         async expireDomainGet(page = 1) {
+            // console.log("expireDomainGet", this.data);
             const res = await this.callApi(
                 "get",
                 "api/get_domain?page=" + page
             );
-            console.log("res", res);
+            // console.log("res", res);
             if (res.status === 200) {
                 this.expireData = res.data.data;
                 this.expirePageData = res.data;
@@ -235,6 +267,10 @@ export default {
                 this.data
             );
             if (res.status === 201) {
+                var myAlarm = new Audio(
+                    "/app/public/sound/sound1.mp3"
+                );
+                myAlarm.play(1);
                 this.memos.unshift(res.data);
                 this.s("memo added");
                 this.addModal = false;
@@ -253,6 +289,7 @@ export default {
             const res = await this.callApi("post", "api/delete_memo", {
                 id: this.deleteDataMemo,
             });
+
             if (res.status === 200) {
                 // 이거 왜 실시간으로 삭제가 안되나???
                 this.memos.splice(this.deleteDataMemo, 1);

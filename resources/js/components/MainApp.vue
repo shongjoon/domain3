@@ -74,5 +74,10 @@
 
 <script>
 
-export default {};
+export default {
+    created() {
+        // 처음페이지 에서 
+        console.log('mainAppcreated')
+    }
+};
 </script>

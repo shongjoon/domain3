@@ -13,8 +13,8 @@ import 'view-design/dist/styles/iview.css';
 import Element from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
 import common from './common'
+import store from './store'
 // import vuetify from './plugins/vuetify';
-
 
 Vue.use(Element)
 Vue.mixin(common)
@@ -41,5 +41,6 @@ Vue.component('MainApp', require('./components/MainApp.vue').default);
 
 const app = new Vue({
     el: '#app',
+    store,
     router: new VueRouter(routes)
 });

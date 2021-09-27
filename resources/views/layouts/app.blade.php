@@ -11,7 +11,7 @@
 
     <!-- Styles -->
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
-    
+    <link rel="stylesheet" href="/css/all.css">
 </head>
 <body class="bg-gray-100 h-screen antialiased leading-none">
     <div id="app" class="h-full">

@@ -9,10 +9,13 @@
     "license": "MIT",
     "require": {
         "php": "^7.2",
+        "arcanedev/log-viewer": "v5.x-dev",
         "fideloper/proxy": "^4.0",
+        "jamesryanbell/cloudflare": "^1.11",
         "laravel-frontend-presets/tailwindcss": "3.0.0",
         "laravel/framework": "^6.18.35",
-        "laravel/tinker": "^2.0"
+        "laravel/tinker": "^2.0",
+        "rap2hpoutre/laravel-log-viewer": "^1.7"
     },
     "require-dev": {
         "facade/ignition": "^1.4",
